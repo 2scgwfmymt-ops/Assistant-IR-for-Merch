@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Инструкции по выкладке — Чат-бот</title>
+    <style>
+        :root {
+            --primary-color: #222222;
+            --bg-color: #000000;
+            --chat-bg: #121212;
+            --bot-msg-bg: #1e1e1e;
+            --user-msg-bg: #333333;
+            --text-color: #ffffff;
+        }
+
+        body {
+            font-family: "Times New Roman", Times, serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 460px;
+            height: 650px;
+            background-color: var(--chat-bg);
+            /* Фоновое изображение магазина с затемнением для читаемости */
+            background-image: linear-gradient(rgba(18, 18, 18, 0.85), rgba(18, 18, 18, 0.85)), url('image.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        .chat-header {
+            background: #000000;
+            color: white;
+            padding: 16px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 19px;
+            border-bottom: 1px solid #333;
+            font-family: "Times New Roman", Times, serif;
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 14px;
+            max-width: 80%;
+            font-size: 16px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            font-family: "Times New Roman", Times, serif;
+        }
+
+        .user-message {
+            background: var(--user-msg-bg);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+            border: 1px solid #444;
+        }
+
+        .bot-message {
+            background: var(--bot-msg-bg);
+            color: #f1f1f1;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+            white-space: pre-line;
+            border: 1px solid #333;
+        }
+
+        /* Панель с тегами */
+        .tags-container {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-top: 1px solid #333;
+            background: rgba(0, 0, 0, 0.9);
+            max-height: 160px;
+            overflow-y: auto;
+        }
+
+        .tags-row {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .tag-btn {
+            background: #1f1f1f;
+            color: #ffffff;
+            border: 1px solid #444;
+            padding: 8px 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s;
+            flex-shrink: 0;
+            font-family: "Times New Roman", Times, serif;
+        }
+
+        .tag-btn:hover {
+            background: #333333;
+        }
+
+        .tag-category {
+            font-size: 12px;
+            font-weight: bold;
+            color: #aaaaaa;
+            margin-top: 4px;
+            text-transform: uppercase;
+            font-family: "Times New Roman", Times, serif;
+        }
+
+        .chat-input-area {
+            display: flex;
+            border-top: 1px solid #333;
+            padding: 8px;
+            background: #000000;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid #444;
+            border-radius: 20px;
+            outline: none;
+            font-size: 15px;
+            background: #121212;
+            color: white;
+            font-family: "Times New Roman", Times, serif;
+        }
+
+        .chat-input-area button {
+            background: #222222;
+            color: white;
+            border: 1px solid #444;
+            padding: 8px 16px;
+            margin-left: 8px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: "Times New Roman", Times, serif;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">Помощник по выкладке</div>
+    
+    <div class="chat-box" id="chatBox">
+        <div class="message bot-message">Привет! Выберите нужную ситуацию с помощью кнопок-тегов ниже, и я подскажу правильный алгоритм действий.</div>
+    </div>
+
+    <!-- Кнопки-теги быстрого выбора на основе вашей таблицы -->
+    <div class="tags-container">
+        <div class="tag-category">Касса</div>
+        <div class="tags-row">
+            <button class="tag-btn" onclick="sendTag('вокруг кассы можешь обойти')">Обход кассы / Одиночная</button>
+            <button class="tag-btn" onclick="sendTag('две кассы стоят рядом')">Две кассы (не пройти)</button>
+            <button class="tag-btn" onclick="sendTag('нет прикассового оборудования')">Пустая прикасса</button>
+            <button class="tag-btn" onclick="sendTag('ты вообще в магнит косметике')">Магнит Косметик</button>
+        </div>
+
+        <div class="tag-category">КСО (Терминалы)</div>
+        <div class="tags-row">
+            <button class="tag-btn" onclick="sendTag('музыкальный бокс между терминалами')">КСО с муз. боксом</button>
+            <button class="tag-btn" onclick="sendTag('нет музыкального бокса ксо')">КСО без бокса / Тумба</button>
+            <button class="tag-btn" onclick="sendTag('у ксо нет никакого оборудования')">Пустая КСО</button>
+            <button class="tag-btn" onclick="sendTag('три терминала ксо')">Три терминала</button>
+        </div>
+
+        <div class="tag-category">Основное место продаж</div>
+        <div class="tags-row">
+            <button class="tag-btn" onclick="sendTag('панель сетка с бритвами')">Панель-сетка с бритвами</button>
+            <button class="tag-btn" onclick="sendTag('подарочные наборы экспозитор')">Подарочные наборы (Дисплей)</button>
+            <button class="tag-btn" onclick="sendTag('страйп лента или навеска')">Страйп лента (Диспенсер)</button>
+            <button class="tag-btn" onclick="sendTag('пены и гели конкуренты у кассы')">Пены/гели у кассы</button>
+            <button class="tag-btn" onclick="sendTag('дорогие на кассе дешевые в зале')">Дорогие на кассе / Дешевые в зале</button>
+        </div>
+    </div>
+
+    <div class="chat-input-area">
+        <input type="text" id="userInput" placeholder="Или напишите вопрос..." onkeydown="if(event.key === 'Enter') sendMessage()">
+        <button onclick="sendMessage()">ОК</button>
+    </div>
+</div>
+
+<script>
+    const faq = {
+        "вокруг кассы можешь обойти": "Выбирай «Одиночная прикасса» и выбери сторону А1 (даже если фоткаешь сторону С или А2 острова).",
+        "две кассы стоят рядом": "Выбирай тип кассы «Прикассовый узел», затем ответь на уточнение:\n• Товар на стороне С+А1+А2 или только С? ➔ Выбирай сторону С и делай фото всех мест продаж в одну сцену.\n• Товар на стороне А1 и А2? ➔ Выбирай сторону А1, делай первое фото, затем нажми «Новая сцена», выбери сторону А2 и сделай второе фото.",
+        "нет прикассового оборудования": "Выбирай «Пустая прикасса».",
+        "ты вообще в магнит косметике": "Выбери сторону С и делай фотки в одну сцену.",
+        "музыкальный бокс между терминалами": "Выбирай «КСО узел» и делай фото двух терминалов в одну сцену.",
+        "нет музыкального бокса ксо": "Выбирай «КСО» и делай фото одного терминала (если между терминалами есть тумба, шкаф или колонна — тоже выбирай это).",
+        "у ксо нет никакого оборудования": "Выбирай «Пустая КСО», делай обзорное фото.",
+        "три терминала ксо": "Выбирай «КСО узел» и фотографируй два терминала, а для третьего выбери «КСО» (если у третего свой муз. бокс или его нет). Если муз. боксов вообще нет между ними — выбирай «КСО» для каждого терминала.",
+        "панель сетка с бритвами": "Выбери «Основное место продаж».",
+        "подарочные наборы экспозитор": "Выбери «Дисплей» (если перед тобой экспозитор, панель-сетка, бразильская стойка, препак или стеллаж с уходовой косметикой, но с нашими подарочными наборами).",
+        "страйп лента или навеска": "Выбери «Диспенсер».",
+        "пены и гели конкуренты у кассы": "Выбери «Основное место продаж», но не забудь сделать фото стеллажа с гигиеной в торговом зале.",
+        "дорогие на кассе дешевые в зале": "Выбирай «Основное место продаж» для торгового зала, а для кассы — «Дисплей»."
+    };
+
+    function sendTag(text) {
+        document.getElementById('userInput').value = text;
+        sendMessage();
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('userInput');
+        const chatBox = document.getElementById('chatBox');
+        const userText = input.value.trim().toLowerCase();
+
+        if (!userText) return;
+
+        chatBox.innerHTML += `<div class="message user-message">${input.value}</div>`;
+        
+        let botReply = "Извините, я не нашел ответа на этот вопрос. Воспользуйтесь кнопками-тегами внизу панели.";
+        
+        for (let key in faq) {
+            if (userText.includes(key)) {
+                botReply = faq[key];
+                break;
+            }
+        }
+
+        setTimeout(() => {
+            chatBox.innerHTML += `<div class="message bot-message">${botReply}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }, 300);
+
+        input.value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+</script>
+
+</body>
+</html>
