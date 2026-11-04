@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Ассистент по ИР фотографированию</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            overflow: hidden;
+            background-color: #000814;
+            font-family: Calibri, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-image: url('image.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+        }
+
+        /* Контейнер Liquid Glass адаптированный под любые экраны и безопасные зоны */
+        .chat-container {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            background: rgba(10, 20, 35, 0.55);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+
+        .chat-header {
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(235, 242, 250, 0.9);
+            padding: 16px 18px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 19px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            flex-shrink: 0;
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .message {
+            padding: 14px 18px;
+            border-radius: 16px;
+            max-width: 92%;
+            font-size: 16px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            color: rgba(235, 242, 250, 0.88);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+        }
+
+        .user-message {
+            background: rgba(255, 255, 255, 0.18);
+            align-self: flex-end;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            border-radius: 16px;
+        }
+
+        .bot-message {
+            background: rgba(0, 0, 0, 0.4);
+            align-self: flex-start;
+            white-space: pre-line;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+        }
+
+        .inline-tags {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+            width: 100%;
+        }
+
+        .inline-tag-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(235, 242, 250, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            padding: 14px 16px;
+            border-radius: 16px;
+            font-size: 15px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            line-height: 1.35;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+            font-family: Calibri, "Helvetica Neue", Arial, sans-serif;
+            width: 100%;
+        }
+
+        .inline-tag-btn:hover, .inline-tag-btn:active {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.45);
+            color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 14px rgba(255, 255, 255, 0.2);
+        }
+
+        .reset-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(235, 242, 250, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 18px;
+            border-radius: 16px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: bold;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+            font-family: Calibri, "Helvetica Neue", Arial, sans-serif;
+            width: 100%;
+        }
+
+        .reset-btn:hover, .reset-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.55);
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">Ассистент по ИР фотографированию</div>
+    <div class="chat-box" id="chatBox"></div>
+</div>
+
+<script>
+    const chatBox = document.getElementById('chatBox');
+
+    function addMessage(text, sender, htmlButtons = null) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${sender === 'user' ? 'user-message' : 'bot-message'}`;
+        msgDiv.textContent = text;
+        
+        if (htmlButtons) {
+            const btnContainer = document.createElement('div');
+            btnContainer.className = 'inline-tags';
+            btnContainer.innerHTML = htmlButtons;
+            msgDiv.appendChild(btnContainer);
+        }
+
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function startMenu() {
+        const buttons = `
+            <button class="inline-tag-btn" onclick="selectCategory('КСО')">КСО</button>
+            <button class="inline-tag-btn" onclick="selectCategory('Касса')">Касса</button>
+            <button class="inline-tag-btn" onclick="selectCategory('Основное место продаж')">Основное место продаж</button>
+        `;
+        addMessage("привет, выбери что тебя интересует", 'bot', buttons);
+    }
+
+    function selectCategory(category) {
+        addMessage(category, 'user');
+
+        if (category === 'КСО') {
+            const buttons = `
+                <button class="inline-tag-btn" onclick="selectKso('box')">Между двумя терминалами КСО есть музыкальный бокс?</button>
+                <button class="inline-tag-btn" onclick="selectKso('no_box')">Между двумя терминалами нет музыкального бокса? Либо есть музыкальный бокс, НО между двумя терминалами есть тумба, шкаф или колона ?</button>
+                <button class="inline-tag-btn" onclick="selectKso('empty')">У КСО вообще нет никакого оборудования ?</button>
+                <button class="inline-tag-btn" onclick="selectKso('three_mixed')">У тебя три терминала, между двумя терминалами музыкальный бокс, у третьего тоже свой музыкальный бокс или нет музыкального бокса?</button>
+                <button class="inline-tag-btn" onclick="selectKso('three_none')">Между двумя терминалами нет музыкального бокса?</button>
+            `;
+            setTimeout(() => {
+                const lastMsg = chatBox.lastElementChild;
+                const btnContainer = document.createElement('div');
+                btnContainer.className = 'inline-tags';
+                btnContainer.innerHTML = buttons;
+                lastMsg.appendChild(btnContainer);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 200);
+        } 
+        else if (category === 'Касса') {
+            const buttons = `
+                <button class="inline-tag-btn" onclick="selectKassa('around')">Вокруг кассы можешь обойти?</button>
+                <button class="inline-tag-btn" onclick="selectKassa('two_kassa')">Две кассы стоят рядом друг с другом или спиной друг к другу, и ты не можешь пройти между ними (между островами)?</button>
+                <button class="inline-tag-btn" onclick="selectKassa('no_equipment')">У кассы вообще нет прикассового оборудования?</button>
+                <button class="inline-tag-btn" onclick="selectKassa('magnit_cosmetic')">Ты вообще в магнит косметике?</button>
+            `;
+            setTimeout(() => {
+                const lastMsg = chatBox.lastElementChild;
+                const btnContainer = document.createElement('div');
+                btnContainer.className = 'inline-tags';
+                btnContainer.innerHTML = buttons;
+                lastMsg.appendChild(btnContainer);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 200);
+        } 
+        else if (category === 'Основное место продаж') {
+            const buttons = `
+                <button class="inline-tag-btn" onclick="selectOmp('net')">Буквально рядом со стеллажом весит панель сетка с бритвами (или щетками) ?</button>
+                <button class="inline-tag-btn" onclick="selectOmp('display')">Перед тобой экспозитор, панель сетка, бразильская стойка, препак, или стеллаж с косметикой или уходовой косметикой ,но с нашими подарочными наборами?</button>
+                <button class="inline-tag-btn" onclick="selectOmp('stripe')">Перед тобой страйп лента или навеска?</button>
+                <button class="inline-tag-btn" onclick="selectOmp('gels_near')">Наши пены и гели + конкуренты, стоят только на стойке возле кассы, или стеллаже (или ДМП) за кассиром?</button>
+                <button class="inline-tag-btn" onclick="selectOmp('gels_diff')">Пены и гели дорогие стоят на кассе, дешевые стоят в торговом зале?</button>
+            `;
+            setTimeout(() => {
+                const lastMsg = chatBox.lastElementChild;
+                const btnContainer = document.createElement('div');
+                btnContainer.className = 'inline-tags';
+                btnContainer.innerHTML = buttons;
+                lastMsg.appendChild(btnContainer);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 200);
+        }
+    }
+
+    function selectKso(type) {
+        let reply = "";
+        if (type === 'box') reply = "Выбирай «КСО узел» и делай фото двух терминалов в одну сцену";
+        if (type === 'no_box') reply = "Выбирай «КСО» и делай фото одного терминала";
+        if (type === 'empty') reply = "Выбирай «Пустая КСО», делай обзорное фото";
+        if (type === 'three_mixed') reply = "Выбирай «КСО узел» фотографируй два терминала, а для третьего выбери «КСО»";
+        if (type === 'three_none') reply = "Выбери «КСО» для каждого терминала";
+
+        addMessage(event.target.textContent, 'user');
+        setTimeout(() => {
+            const resetHtml = `<button class="reset-btn" onclick="resetChat()">вернемся в начало?</button>`;
+            addMessage(reply, 'bot', resetHtml);
+        }, 300);
+    }
+
+    function selectKassa(type) {
+        const text = event.target.textContent;
+        addMessage(text, 'user');
+
+        if (type === 'two_kassa') {
+            const subButtons = `
+                <button class="inline-tag-btn" onclick="selectKassaSub('c_all')">Наш товар находится на стороне С+А1+А2? Либо только на стороне С? Либо только на стороне А1(А2)?</button>
+                <button class="inline-tag-btn" onclick="selectKassaSub('a1_a2')">Наш товар находится на стороне А1 и А2?</button>
+            `;
+            setTimeout(() => {
+                const lastMsg = chatBox.lastElementChild;
+                const btnContainer = document.createElement('div');
+                btnContainer.className = 'inline-tags';
+                btnContainer.innerHTML = subButtons;
+                lastMsg.appendChild(btnContainer);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 200);
+        } else {
+            let reply = "";
+            if (type === 'around') reply = "Выбирай «Одиночная прикасса» и выбери сторону А1 (даже если фоткаешь сторону С или А2 острова)";
+            if (type === 'no_equipment') reply = "Выбирай «Пустая прикасса»";
+            if (type === 'magnit_cosmetic') reply = "Выбери сторону С и делай фотки в одну сцену";
+
+            setTimeout(() => {
+                const resetHtml = `<button class="reset-btn" onclick="resetChat()">вернемся в начало?</button>`;
+                addMessage(reply, 'bot', resetHtml);
+            }, 300);
+        }
+    }
+
+    function selectKassaSub(subType) {
+        addMessage(event.target.textContent, 'user');
+        let reply = "";
+        if (subType === 'c_all') reply = "Выбирай сторону С и делай фото всех мест продаж в одну сцену";
+        if (subType === 'a1_a2') reply = "Выбирай сторону А1 делай первое фото, затем нажми «Новая сцена» и выбери сторону А2 и делаешь второе фото";
+
+        setTimeout(() => {
+            const resetHtml = `<button class="reset-btn" onclick="resetChat()">вернемся в начало?</button>`;
+            addMessage(reply, 'bot', resetHtml);
+        }, 300);
+    }
+
+    function selectOmp(type) {
+        let reply = "";
+        if (type === 'net') reply = "Выбери «Основное место продаж»";
+        if (type === 'display') reply = "Выбери «Дисплей»";
+        if (type === 'stripe') reply = "Выбери «Диспенсер»";
+        if (type === 'gels_near') reply = "Выбери «Основное место продаж», но не забудь сделать фото стеллажа с гигиеной в торговом зале";
+        if (type === 'gels_diff') reply = "Выбери «Основное место продаж» для торгового зала, для кассы «Дисплей»";
+
+        addMessage(event.target.textContent, 'user');
+        setTimeout(() => {
+            const resetHtml = `<button class="reset-btn" onclick="resetChat()">вернемся в начало?</button>`;
+            addMessage(reply, 'bot', resetHtml);
+        }, 300);
+    }
+
+    function resetChat() {
+        chatBox.innerHTML = '';
+        startMenu();
+    }
+
+    window.onload = function() {
+        startMenu();
+    };
+</script>
+
+</body>
+</html>
