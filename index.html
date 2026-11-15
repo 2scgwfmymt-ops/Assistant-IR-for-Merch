@@ -15,7 +15,7 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            font-family: "Apple SD Gothic Neo", -apple-system, sans-serif;
+            font-family: "Trebuchet MS", Helvetica;
             background-color: #000814;
         }
 
@@ -58,7 +58,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.3);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            font-family: "Apple SD Gothic Neo", -apple-system, sans-serif;
+            font-family: "Trebuchet MS", Helvetica;
         }
 
         .chat-box {
@@ -73,11 +73,12 @@
         .message {
             padding: 14px 16px;
             border-radius: 16px;
+            width: 100%;
             max-width: 100%;
             font-size: 16px;
             line-height: 1.4;
             word-wrap: break-word;
-            font-family: "Apple SD Gothic Neo", -apple-system, sans-serif;
+            font-family: "Trebuchet MS", Helvetica;
         }
 
         /* Сообщения пользователя: насыщенное черное стекло и принудительно белый текст */
@@ -112,6 +113,7 @@
             flex-direction: column;
             gap: 10px;
             margin-top: 10px;
+            width: 100%;
         }
 
         .inline-tag-btn {
@@ -128,7 +130,8 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             line-height: 1.35;
-            font-family: "Apple SD Gothic Neo", -apple-system, sans-serif;
+            font-family: "Trebuchet MS", Helvetica;
+            width: 100%;
         }
 
         .inline-tag-btn:hover, .inline-tag-btn:active {
@@ -151,7 +154,8 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             transition: all 0.2s ease;
-            font-family: "Apple SD Gothic Neo", -apple-system, sans-serif;
+            font-family: "Trebuchet MS", Helvetica;
+            width: 100%;
         }
 
         .reset-btn:hover, .reset-btn:active {
@@ -208,7 +212,7 @@
         .black-pill-btn {
             background-color: #000000;
             color: #ffffff;
-            font-family: "Apple SD Gothic Neo", -apple-system, sans-serif;
+            font-family: "Trebuchet MS", Helvetica;
             font-size: 20px;
             font-weight: 500;
             padding: 8px 16px;
@@ -271,7 +275,7 @@
             height: 64px;
             background-color: #000000;
             color: #ffffff;
-            font-family: "Apple SD Gothic Neo", -apple-system, sans-serif;
+            font-family: "Trebuchet MS", Helvetica;
             font-size: 50px;
             line-height: 1;
             padding-bottom: 6px;
@@ -287,7 +291,7 @@
         .stop-btn {
             background-color: #000000;
             color: #ffffff;
-            font-family: "Apple SD Gothic Neo", -apple-system, sans-serif;
+            font-family: "Trebuchet MS", Helvetica;
             font-size: 20px;
             font-weight: 500;
             padding: 0 16px;
@@ -328,7 +332,7 @@
         .island-content {
             background-color: #000000;
             color: #ffffff;
-            font-family: "Apple SD Gothic Neo", -apple-system, sans-serif;
+            font-family: "Trebuchet MS", Helvetica;
             font-size: 30px;
             line-height: 1.35;
             padding: 24px;
@@ -694,7 +698,15 @@
     function openInstruction() {
         const islandInner = document.getElementById('islandContentInner');
         
-        if (currentCategoryKey === 'male_cassette' || currentCategoryKey === 'female_cassette') {
+        if (currentCategoryKey === 'female_cassette') {
+            islandInner.innerHTML = `
+                Веди камеру, через каждый столбик пары СКЮ, слево на право<br>
+                <img src="schema1.png" class="instruction-schema" alt="Схема слева направо" onerror="this.style.display='none'"><br>
+                Если выкладка справо на лево, веди камеру, через каждый столбик пары СКЮ, справо на лево<br>
+                <img src="schema2.png" class="instruction-schema" alt="Схема справа налево" onerror="this.style.display='none'"><br>
+                Если в категории один ряд под кассеты, то веди камеру через каждую позицию СКЮ аналогично, варианту многоразовых бритв
+            `;
+        } else if (currentCategoryKey === 'male_cassette') {
             islandInner.innerHTML = `
                 Веди камеру, через каждый столбик пары СКЮ, слево на право<br>
                 <img src="schema1.png" class="instruction-schema" alt="Схема слева направо" onerror="this.style.display='none'"><br>
