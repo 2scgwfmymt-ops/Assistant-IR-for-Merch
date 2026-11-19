@@ -20,7 +20,7 @@
         }
 
         body {
-            background-image: url('image.png');
+            background-image: url('image.PNG');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -348,7 +348,7 @@
         .instruction-schema {
             max-width: 100%;
             height: auto;
-            max-height: 180px; /* Вернули исходный крупный размер схем */
+            max-height: 180px;
             object-fit: contain;
             border-radius: 10px;
             margin: 10px auto;
@@ -413,14 +413,22 @@
     let stencilInterval = null;
     let currentCategoryKey = '';
 
+    function buildRange(prefix, count) {
+        const list = [];
+        for (let i = 1; i <= count; i++) {
+            list.push(`${prefix}${i}.PNG`);
+        }
+        return list;
+    }
+
     const categoryMasks = {
-        'male_multi': ['G1.png', 'G2.png', 'G3.png'],
-        'male_cassette': ['MC1.png', 'MC2.png'],
-        'male_single': ['GS1.png', 'GS2.png'],
-        'male_shaving': ['SH1.png', 'SH2.png', 'SH3.png'],
-        'female_multi': ['W1.png', 'W2.png'],
-        'female_cassette': ['WC1.png', 'WC2.png'],
-        'female_single': ['WS1.png', 'WS2.png']
+        'male_multi': buildRange('G', 14),
+        'male_cassette': buildRange('MC', 29),
+        'male_single': buildRange('GS', 7),
+        'male_shaving': buildRange('SH', 14),
+        'female_multi': buildRange('W', 7),
+        'female_cassette': buildRange('WC', 16),
+        'female_single': buildRange('WS', 4)
     };
 
     function addMessage(text, sender, htmlButtons = null) {
@@ -618,7 +626,7 @@
     // --- Логика режима «Трафарет» (с ленивой загрузкой только выбранной категории) ---
     async function openStencilMode(categoryKey) {
         currentCategoryKey = categoryKey;
-        activeStencilImages = categoryMasks[categoryKey] || ['G1.png'];
+        activeStencilImages = categoryMasks[categoryKey] || ['G1.PNG'];
         currentStencilIndex = 0;
 
         activeStencilImages.forEach(src => {
@@ -703,17 +711,17 @@
         if (currentCategoryKey === 'female_cassette') {
             islandInner.innerHTML = `
                 Веди камеру, через каждый столбик пары СКЮ, слево на право<br>
-                <img src="schema1.png" class="instruction-schema" alt="Схема слева направо" onerror="this.style.display='none'"><br>
+                <img src="schema1.PNG" class="instruction-schema" alt="Схема слева направо" onerror="this.style.display='none'"><br>
                 Если выкладка справо на лево, веди камеру, через каждый столбик пары СКЮ, справо на лево<br>
-                <img src="schema2.png" class="instruction-schema" alt="Схема справа налево" onerror="this.style.display='none'"><br>
+                <img src="schema2.PNG" class="instruction-schema" alt="Схема справа налево" onerror="this.style.display='none'"><br>
                 Если в категории один ряд под кассеты, то веди камеру через каждую позицию СКЮ аналогично, варианту многоразовых бритв
             `;
         } else if (currentCategoryKey === 'male_cassette') {
             islandInner.innerHTML = `
                 Веди камеру, через каждый столбик пары СКЮ, слево на право<br>
-                <img src="schema1.png" class="instruction-schema" alt="Схема слева направо" onerror="this.style.display='none'"><br>
+                <img src="schema1.PNG" class="instruction-schema" alt="Схема слева направо" onerror="this.style.display='none'"><br>
                 Если выкладка справо на лево, веди камеру, через каждый столбик пары СКЮ, справо на лево<br>
-                <img src="schema2.png" class="instruction-schema" alt="Схема справа налево" onerror="this.style.display='none'">
+                <img src="schema2.PNG" class="instruction-schema" alt="Схема справа налево" onerror="this.style.display='none'">
             `;
         } else {
             islandInner.innerHTML = `
