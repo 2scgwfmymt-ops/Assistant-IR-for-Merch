@@ -248,7 +248,12 @@
             justify-content: center;
             align-items: center;
             position: relative;
-            transform: translateX(40px);
+            transform: translateX(56px);
+        }
+
+        /* Выравниваем масштаб масок мужских и женских кассет под остальные категории */
+        .stencil-slide-container.cassette-scale {
+            transform: translateX(56px) scale(0.82);
         }
 
         .stencil-slide-container img {
@@ -385,7 +390,7 @@
 
         <!-- Центральная область со слайдом -->
         <div class="stencil-viewport">
-            <div class="stencil-slide-container">
+            <div class="stencil-slide-container" id="stencilSlideContainer">
                 <img id="stencilImage" src="" alt="" onerror="this.style.display='none'">
             </div>
         </div>
@@ -628,6 +633,13 @@
         currentCategoryKey = categoryKey;
         activeStencilImages = categoryMasks[categoryKey] || ['G1.PNG'];
         currentStencilIndex = 0;
+
+        const slideContainer = document.getElementById('stencilSlideContainer');
+        if (categoryKey === 'male_cassette' || categoryKey === 'female_cassette') {
+            slideContainer.classList.add('cassette-scale');
+        } else {
+            slideContainer.classList.remove('cassette-scale');
+        }
 
         activeStencilImages.forEach(src => {
             const img = new Image();
