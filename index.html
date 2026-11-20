@@ -261,7 +261,22 @@
             height: 100%;
             object-fit: contain;
             opacity: 0.65;
-            transition: opacity 0.15s ease;
+            transform: translateY(0);
+            transition: transform 0.18s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.18s ease;
+            will-change: transform, opacity;
+        }
+
+        /* Анимация ухода маски вверх */
+        .stencil-slide-container img.mask-fly-out {
+            transform: translateY(-48px);
+            opacity: 0;
+        }
+
+        /* Стартовая позиция новой маски снизу перед выездом на место */
+        .stencil-slide-container img.mask-prepare-in {
+            transition: none !important;
+            transform: translateY(48px);
+            opacity: 0;
         }
 
         /* Нижняя панель: кнопки по центру экрана */
@@ -417,6 +432,8 @@
     let mediaStream = null;
     let stencilInterval = null;
     let currentCategoryKey = '';
+    let isMaskAnimating = false;
+    let maskTransitionTimeout = null;
 
     function buildRange(prefix, count) {
         const list = [];
@@ -634,6 +651,12 @@
         activeStencilImages = categoryMasks[categoryKey] || ['G1.PNG'];
         currentStencilIndex = 0;
 
+        if (maskTransitionTimeout) {
+            clearTimeout(maskTransitionTimeout);
+            maskTransitionTimeout = null;
+        }
+        isMaskAnimating = false;
+
         const slideContainer = document.getElementById('stencilSlideContainer');
         if (categoryKey === 'male_cassette' || categoryKey === 'female_cassette') {
             slideContainer.classList.add('cassette-scale');
@@ -650,7 +673,7 @@
         const video = document.getElementById('cameraVideo');
         
         overlay.style.display = 'flex';
-        updateStencilImage();
+        updateStencilImage(false);
 
         try {
             mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -674,29 +697,66 @@
         startTimer();
     }
 
-    function updateStencilImage() {
+    function updateStencilImage(animate = true) {
         const imgElement = document.getElementById('stencilImage');
-        if (activeStencilImages.length > 0) {
+        if (activeStencilImages.length === 0) return;
+
+        const nextSrc = activeStencilImages[currentStencilIndex];
+
+        if (!animate) {
+            if (maskTransitionTimeout) {
+                clearTimeout(maskTransitionTimeout);
+                maskTransitionTimeout = null;
+            }
+            isMaskAnimating = false;
+            imgElement.classList.remove('mask-fly-out', 'mask-prepare-in');
             imgElement.style.display = 'block';
-            imgElement.src = activeStencilImages[currentStencilIndex];
-            imgElement.style.opacity = 0.65;
+            imgElement.src = nextSrc;
+            return;
         }
+
+        if (isMaskAnimating) return;
+        isMaskAnimating = true;
+
+        // 1. Текущая маска улетает вверх и растворяется
+        imgElement.classList.add('mask-fly-out');
+
+        maskTransitionTimeout = setTimeout(() => {
+            // 2. Ставим новую маску в стартовую позицию снизу без анимации
+            imgElement.classList.remove('mask-fly-out');
+            imgElement.classList.add('mask-prepare-in');
+            imgElement.style.display = 'block';
+            imgElement.src = nextSrc;
+
+            // Форсируем перерисовку кадра, чтобы браузер зафиксировал старт снизу
+            void imgElement.offsetWidth;
+
+            // 3. Плавно выводим новую маску снизу в рабочее положение
+            imgElement.classList.remove('mask-prepare-in');
+
+            maskTransitionTimeout = setTimeout(() => {
+                isMaskAnimating = false;
+                maskTransitionTimeout = null;
+            }, 180);
+        }, 180);
     }
 
     function nextSlideAuto() {
         currentStencilIndex = (currentStencilIndex + 1) % activeStencilImages.length;
-        updateStencilImage();
+        updateStencilImage(true);
     }
 
     function nextSlide() {
+        if (isMaskAnimating) return;
         currentStencilIndex = (currentStencilIndex + 1) % activeStencilImages.length;
-        updateStencilImage();
+        updateStencilImage(true);
         startTimer();
     }
 
     function prevSlide() {
+        if (isMaskAnimating) return;
         currentStencilIndex = (currentStencilIndex - 1 + activeStencilImages.length) % activeStencilImages.length;
-        updateStencilImage();
+        updateStencilImage(true);
         startTimer();
     }
 
@@ -745,7 +805,7 @@
     function closeInstruction() {
         document.getElementById('instructionIsland').style.display = 'none';
         currentStencilIndex = 0;
-        updateStencilImage();
+        updateStencilImage(false);
         startTimer();
     }
 
@@ -757,6 +817,12 @@
             clearInterval(stencilInterval);
             stencilInterval = null;
         }
+
+        if (maskTransitionTimeout) {
+            clearTimeout(maskTransitionTimeout);
+            maskTransitionTimeout = null;
+        }
+        isMaskAnimating = false;
 
         if (mediaStream) {
             mediaStream.getTracks().forEach(track => track.stop());
