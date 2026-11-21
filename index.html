@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Ассистент мерчендайзера</title>
     <style>
         * {
@@ -51,14 +53,79 @@
             background: rgba(255, 255, 255, 0.2);
             color: #333333;
             color: color(display-p3 0.2 0.2 0.2);
-            padding: 16px;
-            text-align: center;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
             font-weight: bold;
             font-size: 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.3);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             font-family: "Trebuchet MS", Helvetica;
+        }
+
+        /* Круглый Liquid Glass индикатор готовности офлайн-кэша */
+        .glass-ring-indicator {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.14) 60%, rgba(255, 255, 255, 0.04) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            box-shadow:
+                inset 0 1px 2px rgba(255, 255, 255, 0.85),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.18),
+                0 3px 10px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-ring-indicator:active {
+            transform: translateY(-50%) scale(0.92);
+        }
+
+        .glass-ring-arc {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2.5px solid rgba(255, 255, 255, 0.22);
+            border-top-color: #ffffff;
+            border-right-color: rgba(255, 255, 255, 0.85);
+            box-sizing: border-box;
+        }
+
+        .glass-ring-indicator.is-loading .glass-ring-arc {
+            animation: glassSpin 0.9s linear infinite;
+        }
+
+        .glass-ring-indicator.is-ready .glass-ring-arc {
+            border-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.75);
+        }
+
+        .glass-ring-indicator.is-ready::after {
+            content: "✓";
+            position: absolute;
+            font-size: 13px;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+            line-height: 1;
+        }
+
+        @keyframes glassSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .chat-box {
@@ -389,7 +456,17 @@
 <body>
 
 <div class="chat-container">
-    <div class="chat-header">Ассистент мерчендайзера</div>
+    <div class="chat-header">
+        <span>Ассистент мерчендайзера</span>
+        <div
+            class="glass-ring-indicator is-loading"
+            id="offlineRingIndicator"
+            title="Статус офлайн-кэша"
+            onclick="showOfflineRingHint()"
+        >
+            <div class="glass-ring-arc"></div>
+        </div>
+    </div>
     <div class="chat-box" id="chatBox"></div>
 </div>
 
@@ -434,6 +511,7 @@
     let currentCategoryKey = '';
     let isMaskAnimating = false;
     let maskTransitionTimeout = null;
+    let isOfflineReady = false;
 
     function buildRange(prefix, count) {
         const list = [];
@@ -645,7 +723,7 @@
         startMenu();
     }
 
-    // --- Логика режима «Трафарет» (с ленивой загрузкой только выбранной категории) ---
+    // --- Логика режима «Трафарет» ---
     async function openStencilMode(categoryKey) {
         currentCategoryKey = categoryKey;
         activeStencilImages = categoryMasks[categoryKey] || ['G1.PNG'];
@@ -718,20 +796,16 @@
         if (isMaskAnimating) return;
         isMaskAnimating = true;
 
-        // 1. Текущая маска улетает вверх и растворяется
         imgElement.classList.add('mask-fly-out');
 
         maskTransitionTimeout = setTimeout(() => {
-            // 2. Ставим новую маску в стартовую позицию снизу без анимации
             imgElement.classList.remove('mask-fly-out');
             imgElement.classList.add('mask-prepare-in');
             imgElement.style.display = 'block';
             imgElement.src = nextSrc;
 
-            // Форсируем перерисовку кадра, чтобы браузер зафиксировал старт снизу
             void imgElement.offsetWidth;
 
-            // 3. Плавно выводим новую маску снизу в рабочее положение
             imgElement.classList.remove('mask-prepare-in');
 
             maskTransitionTimeout = setTimeout(() => {
@@ -833,8 +907,55 @@
         overlay.style.display = 'none';
     }
 
+    // --- Круглый Liquid Glass индикатор офлайн-кэша ---
+    function setOfflineRingState(ready) {
+        isOfflineReady = ready;
+        const ring = document.getElementById('offlineRingIndicator');
+        if (!ring) return;
+        ring.classList.remove('is-loading', 'is-ready');
+        ring.classList.add(ready ? 'is-ready' : 'is-loading');
+    }
+
+    function showOfflineRingHint() {
+        const msg = isOfflineReady
+            ? "Офлайн-кэш загружен: все маски и данные доступны без интернета."
+            : "Идёт загрузка масок и файлов в офлайн-кэш...";
+        addMessage(msg, 'bot');
+    }
+
+    function initOfflineMode() {
+        if (!('serviceWorker' in navigator)) {
+            setOfflineRingState(true);
+            return;
+        }
+
+        navigator.serviceWorker.register('./sw.js').then((registration) => {
+            if (navigator.serviceWorker.controller) {
+                setOfflineRingState(true);
+            }
+
+            if (registration.active && !navigator.serviceWorker.controller) {
+                setOfflineRingState(true);
+            }
+
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                if (!newWorker) return;
+                setOfflineRingState(false);
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'activated') {
+                        setOfflineRingState(true);
+                    }
+                });
+            });
+        }).catch(() => {
+            setOfflineRingState(false);
+        });
+    }
+
     window.onload = function() {
         startMenu();
+        initOfflineMode();
     };
 </script>
 
