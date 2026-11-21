@@ -66,7 +66,7 @@
             font-family: "Trebuchet MS", Helvetica;
         }
 
-        /* Круглый Liquid Glass индикатор готовности офлайн-кэша */
+        /* Цельный индикатор в стиле Liquid Glass без внешней тени и грубой рамки */
         .glass-ring-indicator {
             position: absolute;
             right: 14px;
@@ -75,55 +75,59 @@
             width: 30px;
             height: 30px;
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.14) 60%, rgba(255, 255, 255, 0.04) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.65);
+            background:
+                radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.22) 52%, rgba(255, 255, 255, 0.08) 100%);
+            backdrop-filter: blur(14px) saturate(160%);
+            -webkit-backdrop-filter: blur(14px) saturate(160%);
             box-shadow:
-                inset 0 1px 2px rgba(255, 255, 255, 0.85),
-                inset 0 -2px 4px rgba(0, 0, 0, 0.18),
-                0 3px 10px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+                inset 0 2px 4px rgba(255, 255, 255, 0.9),
+                inset 0 -3px 6px rgba(255, 255, 255, 0.22);
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+            overflow: hidden;
+            transition: transform 0.2s ease, background 0.35s ease, box-shadow 0.35s ease;
         }
 
         .glass-ring-indicator:active {
             transform: translateY(-50%) scale(0.92);
         }
 
+        /* Вращающийся стеклянный блик/дуга на время загрузки */
         .glass-ring-arc {
-            width: 22px;
-            height: 22px;
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
-            border: 2.5px solid rgba(255, 255, 255, 0.22);
-            border-top-color: #ffffff;
-            border-right-color: rgba(255, 255, 255, 0.85);
-            box-sizing: border-box;
-            transition: all 0.3s ease;
+            background: conic-gradient(
+                from 0deg,
+                rgba(255, 255, 255, 0) 0deg,
+                rgba(255, 255, 255, 0.15) 140deg,
+                rgba(255, 255, 255, 0.92) 260deg,
+                rgba(255, 255, 255, 0.25) 360deg
+            );
+            -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 2.5px));
+            mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 2.5px));
+            opacity: 0.9;
+            transition: opacity 0.3s ease;
         }
 
         .glass-ring-indicator.is-loading .glass-ring-arc {
-            animation: glassSpin 0.9s linear infinite;
+            animation: glassSpin 0.95s linear infinite;
         }
 
+        /* При полной загрузке весь круг заливается зелёным жидким стеклом */
         .glass-ring-indicator.is-ready {
-            background: radial-gradient(circle at 30% 25%, rgba(168, 255, 196, 0.88), rgba(46, 213, 115, 0.45) 65%, rgba(26, 178, 92, 0.28) 100%);
-            border-color: rgba(168, 255, 196, 0.95);
+            background:
+                radial-gradient(circle at 28% 20%, rgba(220, 255, 232, 0.92), rgba(56, 224, 124, 0.68) 54%, rgba(22, 168, 86, 0.56) 100%);
             box-shadow:
-                inset 0 1px 2px rgba(255, 255, 255, 0.9),
-                inset 0 -2px 4px rgba(0, 90, 35, 0.25),
-                0 0 12px rgba(46, 213, 115, 0.75);
+                inset 0 2px 5px rgba(255, 255, 255, 0.95),
+                inset 0 -3px 7px rgba(10, 110, 50, 0.35);
         }
 
         .glass-ring-indicator.is-ready .glass-ring-arc {
-            width: 14px;
-            height: 14px;
-            border: none;
-            background: radial-gradient(circle at 35% 30%, #b8ffcf, #2ed573 70%, #1eae5a 100%);
-            box-shadow: 0 0 10px rgba(46, 213, 115, 0.95);
+            animation: none;
+            opacity: 0;
         }
 
         @keyframes glassSpin {
@@ -910,7 +914,7 @@
         overlay.style.display = 'none';
     }
 
-    // --- Круглый Liquid Glass индикатор офлайн-кэша ---
+    // --- Liquid Glass индикатор офлайн-кэша ---
     function setOfflineRingState(ready) {
         isOfflineReady = ready;
         const ring = document.getElementById('offlineRingIndicator');
