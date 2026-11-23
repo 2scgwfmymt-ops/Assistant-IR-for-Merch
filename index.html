@@ -11,6 +11,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
         html, body {
@@ -19,6 +20,7 @@
             overflow: hidden;
             font-family: "Trebuchet MS", Helvetica;
             background-color: #000814;
+            touch-action: none;
         }
 
         body {
@@ -31,7 +33,6 @@
             align-items: center;
         }
 
-        /* Контейнер чата адаптируется под любые экраны телефонов */
         .chat-container {
             width: 100%;
             max-width: 480px;
@@ -66,7 +67,6 @@
             font-family: "Trebuchet MS", Helvetica;
         }
 
-        /* Цельный индикатор в стиле Liquid Glass без внешней тени и грубой рамки */
         .glass-ring-indicator {
             position: absolute;
             right: 14px;
@@ -88,13 +88,13 @@
             cursor: pointer;
             overflow: hidden;
             transition: transform 0.2s ease, background 0.35s ease, box-shadow 0.35s ease;
+            touch-action: manipulation;
         }
 
         .glass-ring-indicator:active {
             transform: translateY(-50%) scale(0.92);
         }
 
-        /* Вращающийся стеклянный блик/дуга на время загрузки */
         .glass-ring-arc {
             width: 100%;
             height: 100%;
@@ -116,7 +116,6 @@
             animation: glassSpin 0.95s linear infinite;
         }
 
-        /* При полной загрузке весь круг заливается зелёным жидким стеклом */
         .glass-ring-indicator.is-ready {
             background:
                 radial-gradient(circle at 28% 20%, rgba(220, 255, 232, 0.92), rgba(56, 224, 124, 0.68) 54%, rgba(22, 168, 86, 0.56) 100%);
@@ -155,7 +154,6 @@
             font-family: "Trebuchet MS", Helvetica;
         }
 
-        /* Сообщения пользователя: насыщенное черное стекло и принудительно белый текст */
         .user-message {
             background: rgba(0, 0, 0, 0.75);
             color: #ffffff !important;
@@ -206,6 +204,7 @@
             line-height: 1.35;
             font-family: "Trebuchet MS", Helvetica;
             width: 100%;
+            touch-action: manipulation;
         }
 
         .inline-tag-btn:hover, .inline-tag-btn:active {
@@ -230,6 +229,7 @@
             transition: all 0.2s ease;
             font-family: "Trebuchet MS", Helvetica;
             width: 100%;
+            touch-action: manipulation;
         }
 
         .reset-btn:hover, .reset-btn:active {
@@ -237,7 +237,6 @@
             border-color: rgba(255, 255, 255, 0.9);
         }
 
-        /* --- Стили для режима «Трафарет» --- */
         #stencilOverlay {
             position: absolute;
             top: 0;
@@ -272,7 +271,6 @@
             pointer-events: none;
         }
 
-        /* Верхняя панель: кнопки справа */
         .stencil-header-bar {
             display: flex;
             justify-content: flex-end;
@@ -296,13 +294,13 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             text-align: center;
             white-space: nowrap;
+            touch-action: manipulation;
         }
 
         .black-pill-btn:active {
             opacity: 0.8;
         }
 
-        /* Центральная область со слайдом (сдвинута правее) */
         .stencil-viewport {
             flex: 1;
             display: flex;
@@ -325,7 +323,6 @@
             transform: translateX(74px);
         }
 
-        /* Выравниваем масштаб масок мужских и женских кассет под остальные категории */
         .stencil-slide-container.cassette-scale {
             transform: translateX(74px) scale(0.76);
         }
@@ -340,20 +337,17 @@
             will-change: transform, opacity;
         }
 
-        /* Анимация ухода маски вверх */
         .stencil-slide-container img.mask-fly-out {
             transform: translateY(-48px);
             opacity: 0;
         }
 
-        /* Стартовая позиция новой маски снизу перед выездом на место */
         .stencil-slide-container img.mask-prepare-in {
             transition: none !important;
             transform: translateY(48px);
             opacity: 0;
         }
 
-        /* Нижняя панель: кнопки по центру экрана */
         .stencil-footer-bar {
             display: flex;
             justify-content: center;
@@ -380,6 +374,7 @@
             justify-content: center;
             align-items: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            touch-action: manipulation;
         }
 
         .stop-btn {
@@ -398,13 +393,13 @@
             align-items: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             white-space: nowrap;
+            touch-action: manipulation;
         }
 
         .round-nav-btn:active, .stop-btn:active {
             transform: scale(0.95);
         }
 
-        /* Остров-инструкция по центру экрана (текст 20px, без вылезания за границы) */
         #instructionIsland {
             position: absolute;
             top: 0;
@@ -497,8 +492,8 @@
         <!-- Нижняя панель: Кнопка Стоп и стрелки по центру экрана -->
         <div class="stencil-footer-bar">
             <button class="stop-btn" onclick="stopSlideShow()">Стоп</button>
-            <button class="round-nav-btn" onclick="prevSlide()">‹</button>
-            <button class="round-nav-btn" onclick="nextSlide()">›</button>
+            <button class="round-nav-btn" onclick="prevSlide(event)">‹</button>
+            <button class="round-nav-btn" onclick="nextSlide(event)">›</button>
         </div>
     </div>
 
@@ -520,21 +515,24 @@
     let maskTransitionTimeout = null;
     let isOfflineReady = false;
 
-    function buildRange(prefix, count) {
+    function buildRange(prefix, count, exclude = []) {
+        const excludedSet = new Set(exclude);
         const list = [];
         for (let i = 1; i <= count; i++) {
-            list.push(`${prefix}${i}.PNG`);
+            if (!excludedSet.has(i)) {
+                list.push(`${prefix}${i}.PNG`);
+            }
         }
         return list;
     }
 
     const categoryMasks = {
-        'male_multi': buildRange('G', 14),
-        'male_cassette': buildRange('MC', 29),
+        'male_multi': buildRange('G', 14, [2, 7, 9]),
+        'male_cassette': buildRange('MC', 29, [2, 4, 8, 12, 16, 18, 20, 26, 28]),
         'male_single': buildRange('GS', 7),
         'male_shaving': buildRange('SH', 14),
-        'female_multi': buildRange('W', 7),
-        'female_cassette': buildRange('WC', 16),
+        'female_multi': buildRange('W', 7, [5]),
+        'female_cassette': buildRange('WC', 16, [2, 4, 6, 8, 11, 12, 14, 16]),
         'female_single': buildRange('WS', 4)
     };
 
@@ -561,7 +559,7 @@
             <button class="inline-tag-btn" onclick="selectCategory('Основное место продаж')">Основное место продаж</button>
             <button class="inline-tag-btn" onclick="selectCategory('Ассистирование по выкладке')">Ассистирование по выкладке</button>
         `;
-        addMessage("привет, выбери что тебя интересует", 'bot', buttons);
+        addMessage("привет, выбери что тебя интересурует", 'bot', buttons);
     }
 
     function selectCategory(category) {
@@ -749,11 +747,6 @@
             slideContainer.classList.remove('cassette-scale');
         }
 
-        activeStencilImages.forEach(src => {
-            const img = new Image();
-            img.src = src;
-        });
-
         const overlay = document.getElementById('stencilOverlay');
         const video = document.getElementById('cameraVideo');
         
@@ -827,14 +820,22 @@
         updateStencilImage(true);
     }
 
-    function nextSlide() {
+    function nextSlide(event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
         if (isMaskAnimating) return;
         currentStencilIndex = (currentStencilIndex + 1) % activeStencilImages.length;
         updateStencilImage(true);
         startTimer();
     }
 
-    function prevSlide() {
+    function prevSlide(event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
         if (isMaskAnimating) return;
         currentStencilIndex = (currentStencilIndex - 1 + activeStencilImages.length) % activeStencilImages.length;
         updateStencilImage(true);
