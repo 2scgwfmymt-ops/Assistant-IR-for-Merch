@@ -1,4 +1,4 @@
-const CACHE_NAME = 'merchandiser-offline-v2';
+const CACHE_NAME = 'merchandiser-offline-v3';
 
 function buildRange(prefix, count, exclude = []) {
     const excludedSet = new Set(exclude);
@@ -27,7 +27,7 @@ const ASSETS_TO_CACHE = [
     ...buildRange('WS', 4)
 ];
 
-// Установка Service Worker и загрузка всех файлов в кэш
+// Установка Service Worker и загрузка актуальных файлов в кэш
 self.addEventListener('install', (event) => {
     self.skipWaiting();
     event.waitUntil(
@@ -54,6 +54,13 @@ self.addEventListener('activate', (event) => {
             );
         }).then(() => self.clients.claim())
     );
+});
+
+// Приём команды мгновенной активации от страницы
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
 
 // Отдача файлов из кэша в офлайн-режиме и при обычной работе
