@@ -1,26 +1,29 @@
-const CACHE_NAME = 'merchandiser-offline-v1';
+const CACHE_NAME = 'merchandiser-offline-v2';
 
-function buildRange(prefix, count) {
+function buildRange(prefix, count, exclude = []) {
+    const excludedSet = new Set(exclude);
     const list = [];
     for (let i = 1; i <= count; i++) {
-        list.push(`./${prefix}${i}.PNG`);
+        if (!excludedSet.has(i)) {
+            list.push(`./${prefix}${i}.PNG`);
+        }
     }
     return list;
 }
 
-// Все файлы приложения, схем, фона и 91 маска в регистре .PNG
+// Все файлы приложения, схем, фона и актуальные маски в регистре .PNG
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './image.PNG',
     './schema1.PNG',
     './schema2.PNG',
-    ...buildRange('G', 14),
-    ...buildRange('MC', 29),
+    ...buildRange('G', 14, [2, 7, 9]),
+    ...buildRange('MC', 29, [2, 4, 8, 12, 16, 18, 20, 26, 28]),
     ...buildRange('GS', 7),
     ...buildRange('SH', 14),
-    ...buildRange('W', 7),
-    ...buildRange('WC', 16),
+    ...buildRange('W', 7, [5]),
+    ...buildRange('WC', 16, [2, 4, 6, 8, 11, 12, 14, 16]),
     ...buildRange('WS', 4)
 ];
 
