@@ -212,6 +212,11 @@
             border-color: rgba(255, 255, 255, 0.8);
         }
 
+        .refresh-cache-btn {
+            text-align: center;
+            font-weight: bold;
+        }
+
         .reset-btn {
             background: rgba(255, 255, 255, 0.45);
             color: #333333;
@@ -514,6 +519,7 @@
     let isMaskAnimating = false;
     let maskTransitionTimeout = null;
     let isOfflineReady = false;
+    let isRefreshingCache = false;
 
     function buildRange(prefix, count, exclude = []) {
         const excludedSet = new Set(exclude);
@@ -915,7 +921,20 @@
         overlay.style.display = 'none';
     }
 
-    // --- Liquid Glass индикатор офлайн-кэша ---
+    // --- Liquid Glass индикатор офлайн-кэша и обновление данных ---
+    function getAllCacheableAssets() {
+        const masks = Object.values(categoryMasks).flat();
+        return [
+            './',
+            './index.html',
+            './sw.js',
+            './image.PNG',
+            './schema1.PNG',
+            './schema2.PNG',
+            ...masks.map(file => `./${file}`)
+        ];
+    }
+
     function setOfflineRingState(ready) {
         isOfflineReady = ready;
         const ring = document.getElementById('offlineRingIndicator');
@@ -926,9 +945,71 @@
 
     function showOfflineRingHint() {
         const msg = isOfflineReady
-            ? "Офлайн-кэш загружен: все маски и данные доступны без интернета."
-            : "Идёт загрузка масок и файлов в офлайн-кэш...";
-        addMessage(msg, 'bot');
+            ? "Все кэши и данные сохранены. Хотите обновить данные, маски и кэш?"
+            : "Идёт загрузка масок и файлов в офлайн-кэш. Вы также можете принудительно обновить данные.";
+
+        const refreshButtonHtml = `
+            <button class="inline-tag-btn refresh-cache-btn" onclick="refreshAllCachedData(this)">Обновить данные</button>
+        `;
+        addMessage(msg, 'bot', refreshButtonHtml);
+    }
+
+    async function refreshAllCachedData(btnElement) {
+        if (isRefreshingCache) return;
+        isRefreshingCache = true;
+
+        if (btnElement) {
+            btnElement.disabled = true;
+            btnElement.textContent = "Обновление данных...";
+        }
+
+        setOfflineRingState(false);
+
+        try {
+            if ('caches' in window) {
+                const keys = await caches.keys();
+                await Promise.all(keys.map(key => caches.delete(key)));
+            }
+
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (const reg of registrations) {
+                    await reg.update();
+                    if (reg.waiting) {
+                        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    }
+                }
+            }
+
+            const assets = getAllCacheableAssets();
+            const cacheName = 'merchandiser-manual-refresh';
+            if ('caches' in window) {
+                const cache = await caches.open(cacheName);
+                for (const url of assets) {
+                    try {
+                        const freshUrl = `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`;
+                        const response = await fetch(freshUrl, { cache: 'reload' });
+                        if (response && response.ok) {
+                            await cache.put(url, response.clone());
+                        }
+                    } catch (e) {
+                        // Пропускаем недоступные при запросе файлы без остановки цикла
+                    }
+                }
+            }
+
+            setOfflineRingState(true);
+            addMessage("Кэши, маски и данные обновлены.", 'bot');
+        } catch (err) {
+            setOfflineRingState(false);
+            addMessage("Не удалось полностью обновить данные. Проверьте подключение к сети.", 'bot');
+        } finally {
+            isRefreshingCache = false;
+            if (btnElement) {
+                btnElement.disabled = false;
+                btnElement.textContent = "Обновить данные";
+            }
+        }
     }
 
     function initOfflineMode() {
