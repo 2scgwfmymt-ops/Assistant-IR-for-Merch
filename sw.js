@@ -1,4 +1,4 @@
-const CACHE_NAME = 'merchandiser-offline-v3';
+const CACHE_NAME = 'merchandiser-offline-v4';
 
 function buildRange(prefix, count, exclude = []) {
     const excludedSet = new Set(exclude);
@@ -23,7 +23,7 @@ const ASSETS_TO_CACHE = [
     ...buildRange('GS', 7),
     ...buildRange('SH', 14),
     ...buildRange('W', 7, [5]),
-    ...buildRange('WC', 16, [2, 4, 6, 8, 11, 12, 14, 16]),
+    ...buildRange('WC', 16, [2, 4, 6, 8, 9, 11, 12, 14, 16]),
     ...buildRange('WS', 4)
 ];
 
